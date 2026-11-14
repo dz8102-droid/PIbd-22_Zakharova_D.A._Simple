@@ -9,11 +9,13 @@ namespace ITCompanyTimeTracking.Forms.Contracts
     public class FormContracts : Form
     {
         private readonly IContractRepository _repository;
+        private readonly IProjectRepository _projectRepository;
         private readonly DataGridView _grid;
 
-        public FormContracts(IContractRepository repository)
+        public FormContracts(IContractRepository repository, IProjectRepository projectRepository)
         {
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));
+            _projectRepository = projectRepository ?? throw new ArgumentNullException(nameof(projectRepository));
 
             Text = "Контракты";
             Width = 800;
@@ -42,7 +44,7 @@ namespace ITCompanyTimeTracking.Forms.Contracts
 
         private void AddRecord()
         {
-            using var form = new FormContract(_repository);
+            using var form = new FormContract(_repository, _projectRepository);
             if (form.ShowDialog() == DialogResult.OK)
                 Reload();
         }

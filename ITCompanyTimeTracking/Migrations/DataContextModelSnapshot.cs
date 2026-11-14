@@ -77,6 +77,8 @@ namespace ITCompanyTimeTracking.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("PositionId");
+
                     b.ToTable("Employees");
                 });
 
@@ -182,6 +184,10 @@ namespace ITCompanyTimeTracking.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("EmployeeId");
+
+                    b.HasIndex("ProjectId");
+
                     b.ToTable("TimeRecords");
                 });
 
@@ -194,7 +200,31 @@ namespace ITCompanyTimeTracking.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("ITCompanyTimeTracking.Entities.Employee", b =>
+                {
+                    b.HasOne("ITCompanyTimeTracking.Entities.Position", null)
+                        .WithMany()
+                        .HasForeignKey("PositionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("ITCompanyTimeTracking.Entities.ProjectEmployee", b =>
+                {
+                    b.HasOne("ITCompanyTimeTracking.Entities.Employee", null)
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ITCompanyTimeTracking.Entities.Project", null)
+                        .WithMany()
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ITCompanyTimeTracking.Entities.TimeRecord", b =>
                 {
                     b.HasOne("ITCompanyTimeTracking.Entities.Employee", null)
                         .WithMany()

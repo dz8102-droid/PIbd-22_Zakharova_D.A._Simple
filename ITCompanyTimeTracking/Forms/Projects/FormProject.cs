@@ -79,8 +79,13 @@ namespace ITCompanyTimeTracking.Forms.Projects
                 }
 
                 int id = _existing?.Id ?? 0;
-                var project = Project.CreateEntity(id, _nameBox.Text.Trim(), _descriptionBox.Text.Trim(), (ProjectType)_typeBox.SelectedItem, _startDateBox.Value);
-
+                var project = Project.CreateEntity(
+                   id,
+                   _nameBox.Text.Trim(),
+                   _descriptionBox.Text.Trim(),
+                   (ProjectType)_typeBox.SelectedItem,
+                   DateTime.SpecifyKind(_startDateBox.Value, DateTimeKind.Utc)
+                );
                 if (_existing is null) _repository.CreateProject(project);
                 else _repository.UpdateProject(project);
 

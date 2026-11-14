@@ -3,6 +3,7 @@ using ITCompanyTimeTracking.Entities.Enums;
 using ITCompanyTimeTracking.Repositories;
 using System;
 using System.Drawing;
+using System.Linq;
 using System.Windows.Forms;
 
 namespace ITCompanyTimeTracking.Forms.TimeRecords
@@ -10,17 +11,21 @@ namespace ITCompanyTimeTracking.Forms.TimeRecords
     public class FormTimeRecord : Form
     {
         private readonly ITimeRecordRepository _repository;
+        private readonly IEmployeeRepository _employeeRepository;
+        private readonly IProjectRepository _projectRepository;
 
-        private readonly NumericUpDown _employeeId = new() { Maximum = int.MaxValue };
-        private readonly NumericUpDown _projectId = new() { Maximum = int.MaxValue };
+        private readonly ComboBox _employeeBox = new() { DropDownStyle = ComboBoxStyle.DropDownList };
+        private readonly ComboBox _projectBox = new() { DropDownStyle = ComboBoxStyle.DropDownList };
         private readonly DateTimePicker _date = new() { Format = DateTimePickerFormat.Short };
         private readonly NumericUpDown _hours = new() { DecimalPlaces = 2, Maximum = 24 };
         private readonly TextBox _description = new();
         private readonly CheckedListBox _bonuses = new() { CheckOnClick = true };
 
-        public FormTimeRecord(ITimeRecordRepository repository)
+        public FormTimeRecord(ITimeRecordRepository repository, IEmployeeRepository employeeRepository, IProjectRepository projectRepository)
         {
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));
+            _employeeRepository = employeeRepository ?? throw new ArgumentNullException(nameof(employeeRepository));
+            _projectRepository = projectRepository ?? throw new ArgumentNullException(nameof(projectRepository));
 
             Text = "Новая запись учёта времени";
             Width = 450;
@@ -28,6 +33,14 @@ namespace ITCompanyTimeTracking.Forms.TimeRecords
             FormBorderStyle = FormBorderStyle.FixedDialog;
             StartPosition = FormStartPosition.CenterParent;
             MaximizeBox = false;
+
+            _employeeBox.DataSource = _employeeRepository.ReadEmployees().ToList();
+            _employeeBox.DisplayMember = "FullName"; // Берем свойство из модели
+            _employeeBox.ValueMember = "Id";
+
+            _projectBox.DataSource = _projectRepository.ReadProjects().ToList();
+            _projectBox.DisplayMember = "Name";
+            _projectBox.ValueMember = "Id";
 
             foreach (BonusType value in Enum.GetValues(typeof(BonusType)))
                 if (value != BonusType.None)
@@ -57,8 +70,8 @@ namespace ITCompanyTimeTracking.Forms.TimeRecords
                 layout.Controls.Add(control, 1, row);
             }
 
-            AddRow("Сотрудник (Id):", _employeeId, 0);
-            AddRow("Проект (Id):", _projectId, 1);
+            AddRow("Сотрудник:", _employeeBox, 0);
+            AddRow("Проект:", _projectBox, 1);
             AddRow("Дата:", _date, 2);
             AddRow("Часов:", _hours, 3);
             AddRow("Описание:", _description, 4);
@@ -69,9 +82,9 @@ namespace ITCompanyTimeTracking.Forms.TimeRecords
 
             btnOk.Click += (_, _) =>
             {
-                if (_employeeId.Value <= 0 || _projectId.Value <= 0)
+                if (_employeeBox.SelectedValue == null || _projectBox.SelectedValue == null)
                 {
-                    MessageBox.Show("Укажите сотрудника и проект.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show("Выберите сотрудника и проект.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
@@ -89,8 +102,8 @@ namespace ITCompanyTimeTracking.Forms.TimeRecords
                 {
                     _repository.CreateTimeRecord(TimeRecord.CreateOperation(
                         0,
-                        (int)_employeeId.Value,
-                        (int)_projectId.Value,
+                        (int)_employeeBox.SelectedValue,
+                        (int)_projectBox.SelectedValue,
                         _date.Value,
                         _hours.Value,
                         _description.Text.Trim(),
@@ -101,7 +114,6 @@ namespace ITCompanyTimeTracking.Forms.TimeRecords
                 }
                 catch (Exception ex)
                 {
-                    // Ловим нашу ошибку и показываем красивое окошко
                     MessageBox.Show(ex.Message, "Ошибка базы данных", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             };

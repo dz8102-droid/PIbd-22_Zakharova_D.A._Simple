@@ -19,30 +19,55 @@ namespace ITCompanyTimeTracking.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            // Настройка связей "Один-ко-многим" (Fluent API)
+            // Автогенерация Id
+            modelBuilder.Entity<Position>().Property(p => p.Id).ValueGeneratedOnAdd();
+            modelBuilder.Entity<Employee>().Property(e => e.Id).ValueGeneratedOnAdd();
+            modelBuilder.Entity<Project>().Property(p => p.Id).ValueGeneratedOnAdd();
+            modelBuilder.Entity<Contract>().Property(c => c.Id).ValueGeneratedOnAdd();
+            modelBuilder.Entity<TimeRecord>().Property(t => t.Id).ValueGeneratedOnAdd();
+            modelBuilder.Entity<ProjectEmployee>().Property(pe => pe.Id).ValueGeneratedOnAdd();
 
-            // У Сотрудника много Контрактов (если в твоей ER-диаграмме так, если нет — удали этот блок)
-            // Судя по твоему коду, Контракт привязан к Проекту:
+            // СВЯЗЬ: Сотрудник -> Должность (Один-ко-многим)
+            modelBuilder.Entity<Employee>()
+                .HasOne<Position>()
+                .WithMany()
+                .HasForeignKey(e => e.PositionId)
+                .OnDelete(DeleteBehavior.Cascade); // Если удалим должность, удалятся и её сотрудники
+
+            // СВЯЗЬ: Контракт -> Проект
             modelBuilder.Entity<Contract>()
                 .HasOne<Project>()
                 .WithMany()
-                .HasForeignKey(c => c.ProjectId);
+                .HasForeignKey(c => c.ProjectId)
+                .OnDelete(DeleteBehavior.Cascade);
 
-            // Настройка связи "Многие-ко-многим" через таблицу ProjectEmployee
-            modelBuilder.Entity<ProjectEmployee>()
-                .HasKey(pe => pe.Id);
-
-            // Связь ProjectEmployee -> Project
+            // СВЯЗЬ: ProjectEmployee -> Project
             modelBuilder.Entity<ProjectEmployee>()
                 .HasOne<Project>()
                 .WithMany()
-                .HasForeignKey(pe => pe.ProjectId);
+                .HasForeignKey(pe => pe.ProjectId)
+                .OnDelete(DeleteBehavior.Cascade);
 
-            // Связь ProjectEmployee -> Employee
+            // СВЯЗЬ: ProjectEmployee -> Employee
             modelBuilder.Entity<ProjectEmployee>()
                 .HasOne<Employee>()
                 .WithMany()
-                .HasForeignKey(pe => pe.EmployeeId);
+                .HasForeignKey(pe => pe.EmployeeId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // СВЯЗЬ: TimeRecord -> Employee
+            modelBuilder.Entity<TimeRecord>()
+                .HasOne<Employee>()
+                .WithMany()
+                .HasForeignKey(t => t.EmployeeId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // СВЯЗЬ: TimeRecord -> Project
+            modelBuilder.Entity<TimeRecord>()
+                .HasOne<Project>()
+                .WithMany()
+                .HasForeignKey(t => t.ProjectId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

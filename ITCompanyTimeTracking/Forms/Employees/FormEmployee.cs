@@ -2,6 +2,7 @@
 using ITCompanyTimeTracking.Repositories;
 using System;
 using System.Drawing;
+using System.Linq;
 using System.Windows.Forms;
 
 namespace ITCompanyTimeTracking.Forms.Employees
@@ -9,16 +10,18 @@ namespace ITCompanyTimeTracking.Forms.Employees
     public class FormEmployee : Form
     {
         private readonly IEmployeeRepository _repository;
+        private readonly IPositionRepository _positionRepository;
         private readonly Employee? _existing;
 
         private readonly TextBox _firstNameBox = new();
         private readonly TextBox _lastNameBox = new();
-        private readonly NumericUpDown _positionIdBox = new() { Maximum = int.MaxValue };
+        private readonly ComboBox _positionBox = new() { DropDownStyle = ComboBoxStyle.DropDownList };
         private readonly DateTimePicker _hireDateBox = new() { Format = DateTimePickerFormat.Short };
 
-        public FormEmployee(IEmployeeRepository repository, Employee? existing)
+        public FormEmployee(IEmployeeRepository repository, IPositionRepository positionRepository, Employee? existing)
         {
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));
+            _positionRepository = positionRepository ?? throw new ArgumentNullException(nameof(positionRepository));
             _existing = existing;
 
             Text = existing is null ? "Новый сотрудник" : "Редактирование сотрудника";
@@ -28,13 +31,32 @@ namespace ITCompanyTimeTracking.Forms.Employees
             StartPosition = FormStartPosition.CenterParent;
             MaximizeBox = false;
 
+            var positions = _positionRepository.ReadPositions().ToList();
+
+            if (positions.Count == 0)
+            {
+                MessageBox.Show("В базе данных нет ни одной должности!\nСначала создайте должность (Справочники -> Должности).",
+                    "Внимание", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                DialogResult = DialogResult.Cancel;
+                Close();
+                return;
+            }
+
+            _positionBox.DataSource = positions;
+            _positionBox.DisplayMember = "Name";
+            _positionBox.ValueMember = "Id";
+
             BuildLayout();
 
             if (existing is not null)
             {
                 _firstNameBox.Text = existing.FirstName;
                 _lastNameBox.Text = existing.LastName;
-                _positionIdBox.Value = existing.PositionId;
+
+                // Ищем нужную должность в списке и выбираем её
+                var currentPosition = positions.FirstOrDefault(p => p.Id == existing.PositionId);
+                if (currentPosition != null) _positionBox.SelectedItem = currentPosition;
+
                 _hireDateBox.Value = existing.HireDate;
             }
         }
@@ -62,7 +84,7 @@ namespace ITCompanyTimeTracking.Forms.Employees
 
             AddRow("Имя:", _firstNameBox, 0);
             AddRow("Фамилия:", _lastNameBox, 1);
-            AddRow("Должность (Id):", _positionIdBox, 2);
+            AddRow("Должность:", _positionBox, 2);
             AddRow("Дата приёма:", _hireDateBox, 3);
 
             var btnOk = new Button { Text = "Сохранить", Width = 100, Height = 30 };
@@ -76,14 +98,31 @@ namespace ITCompanyTimeTracking.Forms.Employees
                     return;
                 }
 
-                if (_positionIdBox.Value <= 0)
+                // --- ГЛАВНОЕ ИСПРАВЛЕНИЕ ЗДЕСЬ ---
+                // Достаем саму должность из выбранного элемента, а не через Value
+                if (_positionBox.SelectedItem is not Position selectedPosition)
                 {
-                    MessageBox.Show("Укажите должность.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show("Выберите должность из списка.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
+                int positionId = selectedPosition.Id;
+
+                if (positionId <= 0)
+                {
+                    MessageBox.Show("Ошибка: выбранная должность имеет некорректный ID.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+                // ---------------------------------
+
                 int id = _existing?.Id ?? 0;
-                var employee = Employee.CreateEntity(id, _firstNameBox.Text.Trim(), _lastNameBox.Text.Trim(), (int)_positionIdBox.Value, _hireDateBox.Value);
+                var employee = Employee.CreateEntity(
+                    id,
+                    _firstNameBox.Text.Trim(),
+                    _lastNameBox.Text.Trim(),
+                    positionId,
+                    DateTime.SpecifyKind(_hireDateBox.Value, DateTimeKind.Utc) // <-- Явно указываем UTC
+                );
 
                 try
                 {
@@ -95,7 +134,6 @@ namespace ITCompanyTimeTracking.Forms.Employees
                 }
                 catch (Exception ex)
                 {
-                    // Вот тут мы ловим ошибку базы данных и показываем её
                     MessageBox.Show(ex.Message, "Ошибка базы данных", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             };

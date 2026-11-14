@@ -8,7 +8,7 @@ namespace ITCompanyTimeTracking.Repositories
     public interface IPositionRepository
     {
         IEnumerable<Position> ReadPositions();
-        Position ReadPositionById(int id);
+        Position? ReadPositionById(int id);
         void CreatePosition(Position position);
         void UpdatePosition(Position position);
         void DeletePosition(int id);
