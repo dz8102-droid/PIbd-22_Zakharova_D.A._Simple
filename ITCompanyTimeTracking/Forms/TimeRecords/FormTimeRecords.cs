@@ -9,11 +9,15 @@ namespace ITCompanyTimeTracking.Forms.TimeRecords
     public class FormTimeRecords : Form
     {
         private readonly ITimeRecordRepository _repository;
+        private readonly IEmployeeRepository _employeeRepository;
+        private readonly IProjectRepository _projectRepository;
         private readonly DataGridView _grid;
 
-        public FormTimeRecords(ITimeRecordRepository repository)
+        public FormTimeRecords(ITimeRecordRepository repository, IEmployeeRepository employeeRepository, IProjectRepository projectRepository)
         {
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));
+            _employeeRepository = employeeRepository ?? throw new ArgumentNullException(nameof(employeeRepository));
+            _projectRepository = projectRepository ?? throw new ArgumentNullException(nameof(projectRepository));
 
             Text = "Учёт времени";
             Width = 800;
@@ -42,7 +46,7 @@ namespace ITCompanyTimeTracking.Forms.TimeRecords
 
         private void AddRecord()
         {
-            using var form = new FormTimeRecord(_repository);
+            using var form = new FormTimeRecord(_repository, _employeeRepository, _projectRepository);
             if (form.ShowDialog() == DialogResult.OK)
                 Reload();
         }

@@ -56,8 +56,15 @@ namespace ITCompanyTimeTracking.Forms.Positions
         {
             if (_grid.CurrentRow?.DataBoundItem is Position position)
             {
-                _repository.DeletePosition(position.Id);
-                Reload();
+                try
+                {
+                    _repository.DeletePosition(position.Id);
+                    Reload();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message, "Ошибка удаления", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
         }
 

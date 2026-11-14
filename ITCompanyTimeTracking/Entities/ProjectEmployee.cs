@@ -13,6 +13,8 @@ namespace ITCompanyTimeTracking.Entities
 
         public int EmployeeId { get; private set; }
 
+        protected ProjectEmployee() { }
+
         public EmployeeRole Role { get; private set; }
 
         public static ProjectEmployee CreateEntity(int id, int projectId,

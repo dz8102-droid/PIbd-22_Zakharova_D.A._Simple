@@ -15,6 +15,7 @@ namespace ITCompanyTimeTracking.Entities
 
         public DateTime WorkDate { get; private set; }
         public decimal HoursWorked { get; private set; }
+        protected TimeRecord() { }
 
         public string Description { get; private set; } = string.Empty;
 

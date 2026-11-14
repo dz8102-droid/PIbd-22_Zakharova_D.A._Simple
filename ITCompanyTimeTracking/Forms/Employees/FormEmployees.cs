@@ -9,11 +9,13 @@ namespace ITCompanyTimeTracking.Forms.Employees
     public class FormEmployees : Form
     {
         private readonly IEmployeeRepository _repository;
+        private readonly IPositionRepository _positionRepository;
         private readonly DataGridView _grid;
 
-        public FormEmployees(IEmployeeRepository repository)
+        public FormEmployees(IEmployeeRepository repository, IPositionRepository positionRepository)
         {
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));
+            _positionRepository = positionRepository ?? throw new ArgumentNullException(nameof(positionRepository));
 
             Text = "Сотрудники";
             Width = 800;
@@ -56,14 +58,21 @@ namespace ITCompanyTimeTracking.Forms.Employees
         {
             if (_grid.CurrentRow?.DataBoundItem is Employee employee)
             {
-                _repository.DeleteEmployee(employee.Id);
-                Reload();
+                try
+                {
+                    _repository.DeleteEmployee(employee.Id);
+                    Reload();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message, "Ошибка удаления", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
         }
 
         private void OpenEditor(Employee? existing)
         {
-            using var form = new FormEmployee(_repository, existing);
+            using var form = new FormEmployee(_repository, _positionRepository, existing);
             if (form.ShowDialog() == DialogResult.OK)
                 Reload();
         }

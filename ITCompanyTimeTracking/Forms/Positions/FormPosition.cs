@@ -1,6 +1,7 @@
 ﻿using ITCompanyTimeTracking.Entities;
 using ITCompanyTimeTracking.Repositories;
 using System;
+using System.Drawing;
 using System.Windows.Forms;
 
 namespace ITCompanyTimeTracking.Forms.Positions
@@ -20,9 +21,10 @@ namespace ITCompanyTimeTracking.Forms.Positions
 
             Text = existing is null ? "Новая должность" : "Редактирование должности";
             Width = 400;
-            Height = 220;
+            Height = 250;
             FormBorderStyle = FormBorderStyle.FixedDialog;
             StartPosition = FormStartPosition.CenterParent;
+            MaximizeBox = false;
 
             BuildLayout();
 
@@ -40,28 +42,31 @@ namespace ITCompanyTimeTracking.Forms.Positions
                 Dock = DockStyle.Fill,
                 ColumnCount = 2,
                 RowCount = 2,
-                Padding = new Padding(10)
+                Padding = new Padding(15)
             };
-            layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 40));
-            layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 60));
+            layout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 130));
+            layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
 
-            layout.Controls.Add(new Label { Text = "Название:", Dock = DockStyle.Fill, TextAlign = System.Drawing.ContentAlignment.MiddleLeft }, 0, 0);
+            // Фиксируем высоту строк
+            layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 35F));
+            layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 35F));
+
+            layout.Controls.Add(new Label { Text = "Название:", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft }, 0, 0);
             _nameBox.Dock = DockStyle.Fill;
             layout.Controls.Add(_nameBox, 1, 0);
 
-            layout.Controls.Add(new Label { Text = "Ставка (руб/час):", Dock = DockStyle.Fill, TextAlign = System.Drawing.ContentAlignment.MiddleLeft }, 0, 1);
+            layout.Controls.Add(new Label { Text = "Ставка (руб/час):", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft }, 0, 1);
             _rateBox.Dock = DockStyle.Fill;
             layout.Controls.Add(_rateBox, 1, 1);
 
-            var btnOk = new Button { Text = "Сохранить", Width = 100 };
-            var btnCancel = new Button { Text = "Отмена", Width = 100, DialogResult = DialogResult.Cancel };
+            var btnOk = new Button { Text = "Сохранить", Width = 100, Height = 30 };
+            var btnCancel = new Button { Text = "Отмена", Width = 100, Height = 30, DialogResult = DialogResult.Cancel };
 
             btnOk.Click += (_, _) =>
             {
                 if (string.IsNullOrWhiteSpace(_nameBox.Text))
                 {
-                    MessageBox.Show("Введите название должности.", "Ошибка",
-                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show("Введите название должности.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
@@ -74,7 +79,7 @@ namespace ITCompanyTimeTracking.Forms.Positions
                 Close();
             };
 
-            var buttons = new FlowLayoutPanel { Dock = DockStyle.Bottom, Height = 40, FlowDirection = FlowDirection.RightToLeft };
+            var buttons = new FlowLayoutPanel { Dock = DockStyle.Bottom, Height = 50, FlowDirection = FlowDirection.RightToLeft, Padding = new Padding(10) };
             buttons.Controls.Add(btnCancel);
             buttons.Controls.Add(btnOk);
 
