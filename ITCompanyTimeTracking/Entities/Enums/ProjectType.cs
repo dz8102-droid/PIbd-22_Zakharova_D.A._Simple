@@ -4,7 +4,10 @@ using System.Text;
 
 namespace ITCompanyTimeTracking.Entities.Enums
 {
-    internal class ProjectType
+    public enum ProjectType
     {
+        None = 0,
+        Development = 1,
+        Support = 2
     }
 }

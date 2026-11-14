@@ -1,10 +1,13 @@
-﻿using System;
+﻿using ITCompanyTimeTracking.Entities;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace ITCompanyTimeTracking.Repositories
 {
-    internal interface ITimeRecordRepository
+    public interface ITimeRecordRepository
     {
+        IEnumerable<TimeRecord> ReadTimeRecords();
+        void CreateTimeRecord(TimeRecord timeRecord);
     }
 }
