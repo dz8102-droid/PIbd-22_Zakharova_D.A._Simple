@@ -1,6 +1,7 @@
 ﻿using ITCompanyTimeTracking.Data;
 using ITCompanyTimeTracking.Entities;
 using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -31,15 +32,31 @@ namespace ITCompanyTimeTracking.Repositories.Implementations
         public void CreateEmployee(Employee employee)
         {
             _logger.LogInformation($"Добавление сотрудника: {employee.LastName}");
-            _context.Employees.Add(employee);
-            _context.SaveChanges();
+            try
+            {
+                _context.Employees.Add(employee);
+                _context.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Ошибка при создании сотрудника");
+                throw new InvalidOperationException("Не удалось сохранить сотрудника. Проверьте, что указанная должность (Id) существует.", ex);
+            }
         }
 
         public void UpdateEmployee(Employee employee)
         {
             _logger.LogInformation($"Обновление сотрудника с ID: {employee.Id}");
-            _context.Employees.Update(employee);
-            _context.SaveChanges();
+            try
+            {
+                _context.Employees.Update(employee);
+                _context.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Ошибка при обновлении сотрудника");
+                throw new InvalidOperationException("Не удалось обновить сотрудника. Проверьте, что указанная должность (Id) существует.", ex);
+            }
         }
 
         public void DeleteEmployee(int id)

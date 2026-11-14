@@ -39,7 +39,7 @@ namespace ITCompanyTimeTracking.Repositories.Implementations
             {
                 _logger.LogError(ex, "Ошибка при создании связи");
                 transaction.Rollback();
-                throw;
+                throw new InvalidOperationException("Не удалось сохранить связь. Убедитесь, что такой проект и сотрудник существуют.", ex);
             }
         }
 

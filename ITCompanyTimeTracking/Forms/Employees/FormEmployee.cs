@@ -85,11 +85,19 @@ namespace ITCompanyTimeTracking.Forms.Employees
                 int id = _existing?.Id ?? 0;
                 var employee = Employee.CreateEntity(id, _firstNameBox.Text.Trim(), _lastNameBox.Text.Trim(), (int)_positionIdBox.Value, _hireDateBox.Value);
 
-                if (_existing is null) _repository.CreateEmployee(employee);
-                else _repository.UpdateEmployee(employee);
+                try
+                {
+                    if (_existing is null) _repository.CreateEmployee(employee);
+                    else _repository.UpdateEmployee(employee);
 
-                DialogResult = DialogResult.OK;
-                Close();
+                    DialogResult = DialogResult.OK;
+                    Close();
+                }
+                catch (Exception ex)
+                {
+                    // Вот тут мы ловим ошибку базы данных и показываем её
+                    MessageBox.Show(ex.Message, "Ошибка базы данных", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             };
 
             var buttons = new FlowLayoutPanel { Dock = DockStyle.Bottom, Height = 50, FlowDirection = FlowDirection.RightToLeft, Padding = new Padding(10) };

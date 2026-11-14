@@ -2,6 +2,7 @@
 using ITCompanyTimeTracking.Entities.Enums;
 using ITCompanyTimeTracking.Repositories;
 using System;
+using System.Drawing;
 using System.Windows.Forms;
 
 namespace ITCompanyTimeTracking.Forms.TimeRecords
@@ -22,10 +23,11 @@ namespace ITCompanyTimeTracking.Forms.TimeRecords
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));
 
             Text = "Новая запись учёта времени";
-            Width = 420;
+            Width = 450;
             Height = 460;
             FormBorderStyle = FormBorderStyle.FixedDialog;
             StartPosition = FormStartPosition.CenterParent;
+            MaximizeBox = false;
 
             foreach (BonusType value in Enum.GetValues(typeof(BonusType)))
                 if (value != BonusType.None)
@@ -41,41 +43,41 @@ namespace ITCompanyTimeTracking.Forms.TimeRecords
                 Dock = DockStyle.Fill,
                 ColumnCount = 2,
                 RowCount = 6,
-                Padding = new Padding(10)
+                Padding = new Padding(15)
             };
-            layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 40));
-            layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 60));
+            layout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 130));
+            layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
 
-            void Add(string label, Control c, int row)
+            for (int i = 0; i < 6; i++) layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 35F));
+
+            void AddRow(string labelText, Control control, int row)
             {
-                layout.Controls.Add(new Label { Text = label, Dock = DockStyle.Fill, TextAlign = System.Drawing.ContentAlignment.MiddleLeft }, 0, row);
-                c.Dock = DockStyle.Fill;
-                layout.Controls.Add(c, 1, row);
+                layout.Controls.Add(new Label { Text = labelText, Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft }, 0, row);
+                control.Dock = DockStyle.Fill;
+                layout.Controls.Add(control, 1, row);
             }
 
-            Add("Сотрудник (Id):", _employeeId, 0);
-            Add("Проект (Id):", _projectId, 1);
-            Add("Дата:", _date, 2);
-            Add("Часов:", _hours, 3);
-            Add("Описание:", _description, 4);
-            Add("Бонусы:", _bonuses, 5);
+            AddRow("Сотрудник (Id):", _employeeId, 0);
+            AddRow("Проект (Id):", _projectId, 1);
+            AddRow("Дата:", _date, 2);
+            AddRow("Часов:", _hours, 3);
+            AddRow("Описание:", _description, 4);
+            AddRow("Бонусы:", _bonuses, 5);
 
-            var btnOk = new Button { Text = "Сохранить", Width = 100 };
-            var btnCancel = new Button { Text = "Отмена", Width = 100, DialogResult = DialogResult.Cancel };
+            var btnOk = new Button { Text = "Сохранить", Width = 100, Height = 30 };
+            var btnCancel = new Button { Text = "Отмена", Width = 100, Height = 30, DialogResult = DialogResult.Cancel };
 
             btnOk.Click += (_, _) =>
             {
                 if (_employeeId.Value <= 0 || _projectId.Value <= 0)
                 {
-                    MessageBox.Show("Укажите сотрудника и проект.", "Ошибка",
-                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show("Укажите сотрудника и проект.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
                 if (_hours.Value <= 0)
                 {
-                    MessageBox.Show("Количество часов должно быть больше нуля.", "Ошибка",
-                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show("Количество часов должно быть больше нуля.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
@@ -83,20 +85,28 @@ namespace ITCompanyTimeTracking.Forms.TimeRecords
                 foreach (BonusType item in _bonuses.CheckedItems)
                     flags |= item;
 
-                _repository.CreateTimeRecord(TimeRecord.CreateOperation(
-                    0,
-                    (int)_employeeId.Value,
-                    (int)_projectId.Value,
-                    _date.Value,
-                    _hours.Value,
-                    _description.Text.Trim(),
-                    flags));
+                try
+                {
+                    _repository.CreateTimeRecord(TimeRecord.CreateOperation(
+                        0,
+                        (int)_employeeId.Value,
+                        (int)_projectId.Value,
+                        _date.Value,
+                        _hours.Value,
+                        _description.Text.Trim(),
+                        flags));
 
-                DialogResult = DialogResult.OK;
-                Close();
+                    DialogResult = DialogResult.OK;
+                    Close();
+                }
+                catch (Exception ex)
+                {
+                    // Ловим нашу ошибку и показываем красивое окошко
+                    MessageBox.Show(ex.Message, "Ошибка базы данных", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             };
 
-            var buttons = new FlowLayoutPanel { Dock = DockStyle.Bottom, Height = 40, FlowDirection = FlowDirection.RightToLeft };
+            var buttons = new FlowLayoutPanel { Dock = DockStyle.Bottom, Height = 50, FlowDirection = FlowDirection.RightToLeft, Padding = new Padding(10) };
             buttons.Controls.Add(btnCancel);
             buttons.Controls.Add(btnOk);
 

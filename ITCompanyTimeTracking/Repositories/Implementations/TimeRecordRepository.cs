@@ -1,6 +1,7 @@
 ﻿using ITCompanyTimeTracking.Data;
 using ITCompanyTimeTracking.Entities;
 using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -22,8 +23,16 @@ namespace ITCompanyTimeTracking.Repositories.Implementations
         public void CreateTimeRecord(TimeRecord timeRecord)
         {
             _logger.LogInformation($"Запись времени для сотрудника ID: {timeRecord.EmployeeId}");
-            _context.TimeRecords.Add(timeRecord);
-            _context.SaveChanges();
+            try
+            {
+                _context.TimeRecords.Add(timeRecord);
+                _context.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Ошибка при сохранении записи времени");
+                throw new InvalidOperationException("Не удалось сохранить запись. Проверьте, что ID сотрудника и ID проекта существуют.", ex);
+            }
         }
     }
 }
