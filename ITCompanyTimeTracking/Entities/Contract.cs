@@ -18,6 +18,7 @@ namespace ITCompanyTimeTracking.Entities
         public DateTime StartDate { get; private set; }
 
         public DateTime EndDate { get; private set; }
+        protected Contract() { }
 
         public static Contract CreateEntity(int id, int projectId, string clientName,
             decimal amount, DateTime startDate, DateTime endDate)

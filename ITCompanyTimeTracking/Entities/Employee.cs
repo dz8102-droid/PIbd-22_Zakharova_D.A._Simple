@@ -15,6 +15,7 @@ namespace ITCompanyTimeTracking.Entities
         public int PositionId { get; private set; }
 
         public DateTime HireDate { get; private set; }
+        protected Employee() { }
 
         public string FullName => $"{LastName} {FirstName}";
 

@@ -16,6 +16,7 @@ namespace ITCompanyTimeTracking.Entities
         public ProjectType ProjectType { get; private set; }
 
         public DateTime StartDate { get; private set; }
+        protected Project() { }
 
         public static Project CreateEntity(int id, string name, string description,
             ProjectType projectType, DateTime startDate)

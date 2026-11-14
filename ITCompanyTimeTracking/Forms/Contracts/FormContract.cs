@@ -1,6 +1,7 @@
 ﻿using ITCompanyTimeTracking.Entities;
 using ITCompanyTimeTracking.Repositories;
 using System;
+using System.Drawing;
 using System.Windows.Forms;
 
 namespace ITCompanyTimeTracking.Forms.Contracts
@@ -20,10 +21,11 @@ namespace ITCompanyTimeTracking.Forms.Contracts
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));
 
             Text = "Новый контракт";
-            Width = 420;
-            Height = 340;
+            Width = 450;
+            Height = 350;
             FormBorderStyle = FormBorderStyle.FixedDialog;
             StartPosition = FormStartPosition.CenterParent;
+            MaximizeBox = false;
 
             BuildLayout();
         }
@@ -35,58 +37,56 @@ namespace ITCompanyTimeTracking.Forms.Contracts
                 Dock = DockStyle.Fill,
                 ColumnCount = 2,
                 RowCount = 5,
-                Padding = new Padding(10)
+                Padding = new Padding(15)
             };
-            layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 40));
-            layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 60));
+            layout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 130));
+            layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
 
-            void Add(string label, Control c, int row)
+            for (int i = 0; i < 5; i++) layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 35F));
+
+            void AddRow(string labelText, Control control, int row)
             {
-                layout.Controls.Add(new Label { Text = label, Dock = DockStyle.Fill, TextAlign = System.Drawing.ContentAlignment.MiddleLeft }, 0, row);
-                c.Dock = DockStyle.Fill;
-                layout.Controls.Add(c, 1, row);
+                layout.Controls.Add(new Label { Text = labelText, Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft }, 0, row);
+                control.Dock = DockStyle.Fill;
+                layout.Controls.Add(control, 1, row);
             }
 
-            Add("Проект (Id):", _projectId, 0);
-            Add("Клиент:", _clientName, 1);
-            Add("Сумма:", _amount, 2);
-            Add("Дата начала:", _startDate, 3);
-            Add("Дата окончания:", _endDate, 4);
+            AddRow("Проект (Id):", _projectId, 0);
+            AddRow("Клиент:", _clientName, 1);
+            AddRow("Сумма:", _amount, 2);
+            AddRow("Дата начала:", _startDate, 3);
+            AddRow("Дата окончания:", _endDate, 4);
 
-            var btnOk = new Button { Text = "Сохранить", Width = 100 };
-            var btnCancel = new Button { Text = "Отмена", Width = 100, DialogResult = DialogResult.Cancel };
+            var btnOk = new Button { Text = "Сохранить", Width = 100, Height = 30 };
+            var btnCancel = new Button { Text = "Отмена", Width = 100, Height = 30, DialogResult = DialogResult.Cancel };
 
             btnOk.Click += (_, _) =>
             {
                 if (_projectId.Value <= 0)
                 {
-                    MessageBox.Show("Укажите проект.", "Ошибка",
-                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show("Укажите проект.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
                 if (string.IsNullOrWhiteSpace(_clientName.Text))
                 {
-                    MessageBox.Show("Введите имя клиента.", "Ошибка",
-                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show("Введите имя клиента.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
                 if (_endDate.Value < _startDate.Value)
                 {
-                    MessageBox.Show("Дата окончания не может быть раньше даты начала.", "Ошибка",
-                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show("Дата окончания не может быть раньше даты начала.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
-                _repository.CreateContract(Contract.CreateEntity(0, (int)_projectId.Value,
-                    _clientName.Text.Trim(), _amount.Value, _startDate.Value, _endDate.Value));
+                _repository.CreateContract(Contract.CreateEntity(0, (int)_projectId.Value, _clientName.Text.Trim(), _amount.Value, _startDate.Value, _endDate.Value));
 
                 DialogResult = DialogResult.OK;
                 Close();
             };
 
-            var buttons = new FlowLayoutPanel { Dock = DockStyle.Bottom, Height = 40, FlowDirection = FlowDirection.RightToLeft };
+            var buttons = new FlowLayoutPanel { Dock = DockStyle.Bottom, Height = 50, FlowDirection = FlowDirection.RightToLeft, Padding = new Padding(10) };
             buttons.Controls.Add(btnCancel);
             buttons.Controls.Add(btnOk);
 

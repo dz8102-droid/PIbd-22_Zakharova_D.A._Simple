@@ -1,6 +1,7 @@
 ﻿using ITCompanyTimeTracking.Entities;
 using ITCompanyTimeTracking.Repositories;
 using System;
+using System.Drawing;
 using System.Windows.Forms;
 
 namespace ITCompanyTimeTracking.Forms.Employees
@@ -21,10 +22,11 @@ namespace ITCompanyTimeTracking.Forms.Employees
             _existing = existing;
 
             Text = existing is null ? "Новый сотрудник" : "Редактирование сотрудника";
-            Width = 420;
-            Height = 300;
+            Width = 450;
+            Height = 320;
             FormBorderStyle = FormBorderStyle.FixedDialog;
             StartPosition = FormStartPosition.CenterParent;
+            MaximizeBox = false;
 
             BuildLayout();
 
@@ -44,56 +46,53 @@ namespace ITCompanyTimeTracking.Forms.Employees
                 Dock = DockStyle.Fill,
                 ColumnCount = 2,
                 RowCount = 4,
-                Padding = new Padding(10)
+                Padding = new Padding(15)
             };
-            layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 40));
-            layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 60));
+            layout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 130));
+            layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
 
-            void Add(string label, Control c, int row)
+            for (int i = 0; i < 4; i++) layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 35F));
+
+            void AddRow(string labelText, Control control, int row)
             {
-                layout.Controls.Add(new Label { Text = label, Dock = DockStyle.Fill, TextAlign = System.Drawing.ContentAlignment.MiddleLeft }, 0, row);
-                c.Dock = DockStyle.Fill;
-                layout.Controls.Add(c, 1, row);
+                layout.Controls.Add(new Label { Text = labelText, Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft }, 0, row);
+                control.Dock = DockStyle.Fill;
+                layout.Controls.Add(control, 1, row);
             }
 
-            Add("Имя:", _firstNameBox, 0);
-            Add("Фамилия:", _lastNameBox, 1);
-            Add("Должность (Id):", _positionIdBox, 2);
-            Add("Дата приёма:", _hireDateBox, 3);
+            AddRow("Имя:", _firstNameBox, 0);
+            AddRow("Фамилия:", _lastNameBox, 1);
+            AddRow("Должность (Id):", _positionIdBox, 2);
+            AddRow("Дата приёма:", _hireDateBox, 3);
 
-            var btnOk = new Button { Text = "Сохранить", Width = 100 };
-            var btnCancel = new Button { Text = "Отмена", Width = 100, DialogResult = DialogResult.Cancel };
+            var btnOk = new Button { Text = "Сохранить", Width = 100, Height = 30 };
+            var btnCancel = new Button { Text = "Отмена", Width = 100, Height = 30, DialogResult = DialogResult.Cancel };
 
             btnOk.Click += (_, _) =>
             {
                 if (string.IsNullOrWhiteSpace(_firstNameBox.Text) || string.IsNullOrWhiteSpace(_lastNameBox.Text))
                 {
-                    MessageBox.Show("Заполните имя и фамилию.", "Ошибка",
-                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show("Заполните имя и фамилию.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
                 if (_positionIdBox.Value <= 0)
                 {
-                    MessageBox.Show("Укажите должность.", "Ошибка",
-                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show("Укажите должность.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
                 int id = _existing?.Id ?? 0;
-                var employee = Employee.CreateEntity(id, _firstNameBox.Text.Trim(),
-                    _lastNameBox.Text.Trim(), (int)_positionIdBox.Value, _hireDateBox.Value);
+                var employee = Employee.CreateEntity(id, _firstNameBox.Text.Trim(), _lastNameBox.Text.Trim(), (int)_positionIdBox.Value, _hireDateBox.Value);
 
-                if (_existing is null)
-                    _repository.CreateEmployee(employee);
-                else
-                    _repository.UpdateEmployee(employee);
+                if (_existing is null) _repository.CreateEmployee(employee);
+                else _repository.UpdateEmployee(employee);
 
                 DialogResult = DialogResult.OK;
                 Close();
             };
 
-            var buttons = new FlowLayoutPanel { Dock = DockStyle.Bottom, Height = 40, FlowDirection = FlowDirection.RightToLeft };
+            var buttons = new FlowLayoutPanel { Dock = DockStyle.Bottom, Height = 50, FlowDirection = FlowDirection.RightToLeft, Padding = new Padding(10) };
             buttons.Controls.Add(btnCancel);
             buttons.Controls.Add(btnOk);
 

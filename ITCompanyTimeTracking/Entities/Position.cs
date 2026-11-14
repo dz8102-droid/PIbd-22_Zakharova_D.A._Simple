@@ -11,6 +11,7 @@ namespace ITCompanyTimeTracking.Entities
         public string Name { get; private set; } = string.Empty;
 
         public decimal BaseHourlyRate { get; private set; }
+        protected Position() { }
 
         public static Position CreateEntity(int id, string name, decimal baseHourlyRate)
         {
